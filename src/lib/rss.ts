@@ -68,7 +68,8 @@ export const searchRssFeeds = async (term: string, feeds: string[]) => {
 
 export const localMunichFeeds = [
   'https://www.tagesschau.de/xml/rss2/',
-  'http://www.tagesschau.de/xml/rss2/index.html',
+  'https://www.tagesschau.de/infoservices/alle-meldungen-100~rss2.xml',
+  'https://www.deutschlandfunk.de/nachrichten-100.rss',
   'https://www.tagesschau.de/xml/rdf.rdf'
 ];
 
