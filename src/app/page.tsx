@@ -6,6 +6,7 @@ import ResultCard from '@/components/ResultCard'
 import SummaryCard from '@/components/SummaryCard'
 import { fetchEventRegistry } from '@/lib/eventregistry'
 import { fetchNewsAPI } from '@/lib/newsapi'
+import { fetchRssFeed, germanFeeds } from '@/lib/rss'
 import { summarizeArticles } from '@/lib/summarize'
 
 type BareArticle = {
@@ -43,8 +44,24 @@ export default function SearchPage() {
         fetchNewsAPI(searchTerm)
       ])
 
+      // Load RSS feeds
+      const rssResults = (await Promise.all(germanFeeds.map(feed => fetchRssFeed(feed)))).flat();
+
+      // Format RSS results to NewsItem
+      const formattedRssResults = rssResults.map(item => ({
+        title: item.title,
+        content: item.content,
+        source: {
+          name: 'RSS-Feed',
+          url: item.link,
+          logo: 'https://via.placeholder.com/40',
+        },
+        publishedAt: new Date().toISOString(),
+        originalUrl: item.link,
+      }));
+
       // Combine and deduplicate results
-      const allResults = [...erResults, ...newsResults]
+      const allResults = [...erResults, ...newsResults, ...formattedRssResults];
       const uniqueResults = Array.from(
         new Map(allResults.map(item => [item.title, item])).values()
       ).slice(0, 10) as NewsItem[]

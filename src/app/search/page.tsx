@@ -7,6 +7,7 @@ import SummaryCard from '@/components/SummaryCard'
 import { fetchEventRegistry } from '@/lib/eventregistry'
 import { fetchNewsAPI } from '@/lib/newsapi'
 import { summarizeArticles } from '@/lib/summarize'
+import { fetchRssFeed, germanFeeds } from '@/lib/rss'
 
 type BareArticle = {
   title: string
@@ -43,8 +44,24 @@ export default function SearchPage() {
         fetchNewsAPI(searchTerm)
       ])
 
+      // Lade RSS-Feeds
+      const rssResults = (await Promise.all(germanFeeds.map(feed => fetchRssFeed(feed)))).flat();
+
+      // Formatiere RSS-Ergebnisse zu NewsItem
+      const formattedRssResults = rssResults.map(item => ({
+        title: item.title,
+        content: item.content,
+        source: {
+          name: 'RSS-Feed',
+          url: item.link,
+          logo: 'https://via.placeholder.com/40',
+        },
+        publishedAt: new Date().toISOString(),
+        originalUrl: item.link,
+      }));
+
       // Combine and deduplicate results
-      const allResults = [...erResults, ...newsResults]
+      const allResults = [...erResults, ...newsResults, ...formattedRssResults];
       const uniqueResults = Array.from(
         new Map(allResults.map(item => [item.title, item])).values()
       ).slice(0, 10) as NewsItem[]
@@ -61,6 +78,9 @@ export default function SearchPage() {
           logo: a.source.logo
         }
       }))
+
+      // Debug: Log RSS-Feed results
+      console.log('RSS-Feed results:', rssResults)
 
       // Generate summary if we have results
       if (uniqueResults.length > 0) {
