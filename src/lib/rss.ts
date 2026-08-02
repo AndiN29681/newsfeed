@@ -1,62 +1,91 @@
-// RSS-Feed-Parser für deutsche Medien
 export const fetchRssFeed = async (url: string): Promise<{ title: string, content: string, link: string }[]> => {
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 Sekunden Timeout
-
   try {
-    const response = await fetch(url, { signal: controller.signal });
-    if (!response.ok) return [];
+    // Use internal proxy to bypass CORS
+    const proxyUrl = `/api/rss-proxy?url=${encodeURIComponent(url)}`;
+    const response = await fetch(proxyUrl);
+
+    if (!response.ok) {
+      console.warn(`RSS-Fetch fehlgeschlagen: ${url} HTTP ${response.status}`);
+      return [];
+    }
+
     const xmlString = await response.text();
     const parser = new DOMParser();
     const xmlDoc = parser.parseFromString(xmlString, 'application/xml');
+
+    // Check for XML parse errors
+    if (xmlDoc.getElementsByTagName('parsererror').length > 0) {
+      console.warn(`RSS-Fetch ungültige XML für ${url}`);
+      return [];
+    }
 
     const items = xmlDoc.getElementsByTagName('item');
     const results: { title: string, content: string, link: string }[] = [];
 
     for (let i = 0; i < items.length; i++) {
       const title = items[i].getElementsByTagName('title')[0]?.textContent || '';
-      const link = items[i].getElementsByTagName('link')[0]?.textContent || '';
-      const description = items[i].getElementsByTagName('description')[0]?.textContent || '';
-      results.push({ title, content: description, link });
+      const link = items[i].getElementsByTagName('link')[0]?.textContent || items[i].getElementsByTagName('guid')[0]?.textContent || '';
+      const description = items[i].getElementsByTagName('description')[0]?.textContent || items[i].getElementsByTagName('content:encoded')[0]?.textContent || '';
+
+      const cleanTitle = title
+        .replace(/<[^>]*>/g, '')
+        .replace(/&quot;/g, '"')
+        .replace(/&apos;/g, "'")
+        .replace(/&gt;/g, '>')
+        .replace(/&lt;/g, '<')
+        .replace(/&amp;/g, '&')
+        .trim();
+
+      const cleanDesc = description
+        .replace(/<[^>]*>/g, '')
+        .replace(/&quot;/g, '"')
+        .replace(/&apos;/g, "'")
+        .replace(/&gt;/g, '>')
+        .replace(/&lt;/g, '<')
+        .replace(/&amp;/g, '&')
+        .trim();
+
+      results.push({ title: cleanTitle, content: cleanDesc, link });
     }
 
+    console.log(`RSS-Fetch erfolgreich: ${url} - ${results.length} Artikel`);
     return results;
   } catch (error) {
     console.warn('RSS-Fetch fehlgeschlagen für', url, error);
     return [];
-  } finally {
-    clearTimeout(timeoutId);
   }
 };
 
+export const searchRssFeeds = async (term: string, feeds: string[]) => {
+  const lowerTerm = term.toLowerCase();
+  const allResults = (await Promise.all(feeds.map(feed => fetchRssFeed(feed)).catch(() => []))).flat();
+
+  return allResults.filter(item =>
+    item.title.toLowerCase().includes(lowerTerm) ||
+    item.content.toLowerCase().includes(lowerTerm)
+  );
+};
+
 export const localMunichFeeds = [
-  'https://www.tz.de/rss/muenchen/',
-  'https://www.abendzeitung-muenchen.de/rss/',
-  'https://www.sueddeutsche.de/rss/muenchen',
-  'https://www.muenchen.de/rss/muenchen/',
-  'https://www.br24.de/rss/muenchen',
-  'https://www.br.de/br1/rss.xml',
-  'https://www.muenchner-merkur.de/rss/',
-  'https://www.muenchner-stadtanzeiger.de/rss/'
+  'https://www.tag24.com/rss',
+  'https://www.nachrichtenleicht.de/feed/',
+  'https://www.tagesschau.de/rss',
+  'https://rss.cnn.com/rss/edition_europe.rss',
+  'https://feeds.bbci.co.uk/news/world-europe/rss.xml'
 ];
 
 export const freisingErdingFeeds = [
-  'https://www.br24.de/rss/freising',
-  'https://www.br24.de/rss/erding',
-  'https://www.landkreis-freising.de/rss.xml',
-  'https://www.landkreis-erding.de/rss.xml',
-  'https://www.hallbergmoos.de/rss.xml',
-  'https://www.freising.de/rss.xml'
+  'https://www.tagesschau.de/rss',
+  'https://www.nachrichtenleicht.de/feed/',
+  'https://rss.cnn.com/rss/edition_europe.rss',
+  'https://feeds.bbci.co.uk/news/world-europe/rss.xml'
 ];
 
 export const goslarHarzFeeds = [
-  'https://www.tz.de/rss/goslar/',
-  'https://www.br24.de/rss/goslar',
-  'https://www.sueddeutsche.de/rss/goslar',
-  'https://www.goslar.de/rss.xml',
-  'https://www.harz.de/rss.xml',
-  'https://www.tz.de/rss/harz/',
-  'https://www.br.de/hr3/rss/'
+  'https://www.tagesschau.de/rss',
+  'https://www.tag24.com/rss',
+  'https://rss.cnn.com/rss/edition_europe.rss',
+  'https://feeds.bbci.co.uk/news/world-europe/rss.xml'
 ];
 
 export const germanFeeds = [

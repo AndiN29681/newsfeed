@@ -7,7 +7,7 @@ import SummaryCard from '@/components/SummaryCard'
 import { fetchEventRegistry } from '@/lib/eventregistry'
 import { fetchNewsAPI } from '@/lib/newsapi'
 import { summarizeArticles } from '@/lib/summarize'
-import { fetchRssFeed, germanFeeds } from '@/lib/rss'
+import { fetchRssFeed, germanFeeds, searchRssFeeds } from '@/lib/rss'
 
 type BareArticle = {
   title: string
@@ -22,6 +22,12 @@ type BareArticle = {
 type NewsItem = BareArticle & {
   originalUrl: string
 }
+
+const versionInfo = {
+  version: "1.0.0",
+  gitHash: typeof window !== 'undefined' ? window.location.hash.slice(1, 8) : 'dev',
+  buildTime: new Date().toISOString().split('T')[0],
+};
 
 export default function SearchPage() {
   const [query, setQuery] = useState<string>('')
@@ -40,23 +46,28 @@ export default function SearchPage() {
     setError(null)
 
     try {
-      // Fetch from both sources in parallel
-      const [erResults, newsResults] = await Promise.all([
-        fetchEventRegistry(searchTerm),
-        fetchNewsAPI(searchTerm)
-      ])
-
-      // Lade RSS-Feeds mit Progress-Tracking
+      // Suche über RSS-Feeds (Primärquelle für deutsche News)
       setIsRssSearching(true)
       setRssProgress({ loaded: 0, total: germanFeeds.length })
-      const rssResultsArrays = await Promise.all(
-        germanFeeds.map(async (feed) => {
+
+      // Lade und filtere RSS-Feeds nach Suchbegriff
+      const rssResults = await new Promise<{ title: string; content: string; link: string }[]>((resolve) => {
+        const allResults: { title: string; content: string; link: string }[] = []
+        let completed = 0
+
+        germanFeeds.forEach(async (feed) => {
           const results = await fetchRssFeed(feed)
           setRssProgress((prev) => ({ loaded: prev.loaded + 1, total: prev.total }))
-          return results
+          allResults.push(...results)
+          completed++
+          if (completed === germanFeeds.length) {
+            resolve(allResults.filter(item =>
+              item.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+              item.content.toLowerCase().includes(searchTerm.toLowerCase())
+            ))
+          }
         })
-      )
-      const rssResults = rssResultsArrays.flat()
+      })
       setIsRssSearching(false)
 
       // Formatiere RSS-Ergebnisse zu NewsItem
@@ -72,15 +83,15 @@ export default function SearchPage() {
         originalUrl: item.link,
       }));
 
-      // Combine and deduplicate results
-      const allResults = [...erResults, ...newsResults, ...formattedRssResults];
+      // Combine und deduplizieren
+      const allResults = [...formattedRssResults];
       const uniqueResults = Array.from(
         new Map(allResults.map(item => [item.title, item])).values()
       ).slice(0, 10) as NewsItem[]
 
       setResults(uniqueResults)
 
-      // Create clean versions for Claude summary
+      // Erstelle saubere Versionen für Claude-Zusammenfassung
       const cleanArticles = uniqueResults.map(a => ({
         title: a.title,
         content: a.content,
@@ -91,10 +102,7 @@ export default function SearchPage() {
         }
       }))
 
-      // Debug: Log RSS-Feed results
-      console.log('RSS-Feed results:', rssResults)
-
-      // Generate summary if we have results
+      // Generiere Zusammenfassung wenn Ergebnisse vorhanden
       if (uniqueResults.length > 0) {
         const summaryText = await summarizeArticles(cleanArticles, searchTerm)
         setSummary(summaryText || 'Zusammenfassung konnte nicht erstellt werden.')
@@ -121,12 +129,26 @@ export default function SearchPage() {
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <header className="bg-white dark:bg-gray-800 shadow-sm">
         <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
-            Medienspiegel
-          </h1>
-          <p className="mt-2 text-gray-600 dark:text-gray-300">
-            Geben Sie ein Schlagwort ein, um aktuelle News zu erhalten
-          </p>
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
+                Medienspiegel
+              </h1>
+              <p className="mt-2 text-gray-600 dark:text-gray-300">
+                Geben Sie ein Schlagwort ein, um aktuelle News zu erhalten
+              </p>
+            </div>
+            <div className="text-sm text-gray-500 dark:text-gray-400 flex items-center gap-3">
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
+                <span>Live</span>
+              </div>
+              <div className="border-l border-gray-300 dark:border-gray-600 px-3"></div>
+              <div className="text-xs">
+                Version {versionInfo.version} • {versionInfo.gitHash}
+              </div>
+            </div>
+          </div>
         </div>
       </header>
 
@@ -140,7 +162,24 @@ export default function SearchPage() {
           />
         </form>
 
-        {loading && (
+        {/* RSS Progress Anzeige */}
+        {isRssSearching && (
+          <div className="mb-6 p-4 bg-blue-50 dark:bg-blue-900/20 border-l-4 border-blue-500 rounded">
+            <div className="flex items-center">
+              <div className="flex-1 text-sm text-blue-700 dark:text-blue-200">
+                Lade RSS-Feeds: {rssProgress.loaded}/{rssProgress.total}
+              </div>
+              <div className="w-32 h-2 bg-blue-200 dark:bg-blue-800 rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-blue-500 transition-all duration-300"
+                  style={{ width: `${(rssProgress.loaded / rssProgress.total) * 100}%` }}
+                ></div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {loading && !isRssSearching && (
           <div className="flex justify-center py-12">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
           </div>
