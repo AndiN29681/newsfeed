@@ -56,7 +56,7 @@ export const fetchNewsAPI = async (term: string): Promise<NormalizedArticle[]> =
 
   } catch (error) {
     // Handle all other errors
-    console.error('NewsAPI Fetch Error:', error.message);
+    console.error('NewsAPI Fetch Error:', (error instanceof Error ? error.message : String(error)));
     return [];
   }
 };
