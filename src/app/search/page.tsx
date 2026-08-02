@@ -30,6 +30,7 @@ export default function SearchPage() {
   const [error, setError] = useState<string | null>(null)
   const [summary, setSummary] = useState<string>('')
   const [hasMore, setHasMore] = useState<boolean>(false)
+  const [rssProgress, setRssProgress] = useState<{ loaded: number; total: number }>({ loaded: 0, total: germanFeeds.length })
 
   const searchNews = async (searchTerm: string, page = 1) => {
     if (!searchTerm.trim()) return

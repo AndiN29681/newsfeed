@@ -5,7 +5,10 @@
       "Bash(npm init *)",
       "Bash(npm install *)",
       "Bash(rm -f plan.md)",
-      "Read(//Users/andreasnietzel/Documents/ClaudeCode/newsfeed/**)"
+      "Read(//Users/andreasnietzel/Documents/ClaudeCode/newsfeed/**)",
+      "Bash(claude *)",
+      "Bash(git commit -m 'Fix NewsAPI error handling to prevent immediate crash on invalid API responses *)",
+      "Bash(git push *)"
     ]
   }
 }
