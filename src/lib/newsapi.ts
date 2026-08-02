@@ -1,21 +1,3 @@
-type NewsApiResponse = {
-  status?: string;
-  totalResults?: number;
-  articles?: Array<{
-    source: {
-      id?: string | null;
-      name: string;
-    };
-    author?: string | null;
-    title: string;
-    description: string | null;
-    url: string;
-    urlToImage?: string | null;
-    publishedAt: string;
-    content: string | null;
-  } | null>;
-};
-
 type NormalizedArticle = {
   title: string;
   content: string;
@@ -41,29 +23,27 @@ export const fetchNewsAPI = async (term: string): Promise<NormalizedArticle[]> =
       throw new Error(`HTTP error! status: ${response.status}`);
     }
 
-    const data = await response.json();
+    const data: any = await response.json();
 
     if (data.status !== 'ok') {
       throw new Error(`NewsAPI error: ${data.status}`);
     }
 
-    // Filter out null/undefined articles first for type safety
-    type ArticleType = NonNullable<NewsApiResponse['articles']>[number];
-    const validArticles = (data.articles || []).filter((article): article is ArticleType => article !== null && article !== undefined);
+    const articles: any[] = data.articles || [];
 
-    return validArticles.map((article: ArticleType) => {
-      return {
+    return articles
+      .filter((article: any) => article !== null && article !== undefined)
+      .map((article: any) => ({
         title: article.title || '',
-        content: (article.description || article.content || ''),
+        content: article.description || article.content || '',
         source: {
-          name: article.source.name || 'NewsAPI',
+          name: article.source?.name || 'NewsAPI',
           url: article.url || '#',
           logo: article.urlToImage || article.url || 'https://via.placeholder.com/40',
         },
         publishedAt: article.publishedAt || new Date().toISOString(),
         originalUrl: article.url,
-      };
-    });
+      }));
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unknown error';
     console.error('NewsAPI fetch error:', message);
