@@ -47,17 +47,11 @@ export const fetchNewsAPI = async (term: string): Promise<NormalizedArticle[]> =
       throw new Error(`NewsAPI error: ${data.status}`);
     }
 
-    return (data.articles || []).map((article) => {
-      if (!article) {
-        return {
-          title: '',
-          content: '',
-          source: { name: 'Unknown', url: '#', logo: 'https://via.placeholder.com/40' },
-          publishedAt: new Date().toISOString(),
-          originalUrl: '#',
-        };
-      }
+    // Filter out null/undefined articles first for type safety
+    type ArticleType = NonNullable<NewsApiResponse['articles']>[number];
+    const validArticles = (data.articles || []).filter((article): article is ArticleType => article !== null && article !== undefined);
 
+    return validArticles.map((article: ArticleType) => {
       return {
         title: article.title || '',
         content: (article.description || article.content || ''),
