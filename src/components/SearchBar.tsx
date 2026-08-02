@@ -13,8 +13,7 @@ export default function SearchBar({ value, onChange, onSubmit, placeholder = 'Sc
 
   return (
     <div className="relative max-w-2xl mx-auto">
-      <form onSubmit={onSubmit} className="relative">
-        <div className={`
+      <div className={`
           relative flex items-center transition-all duration-200
           ${isFocused ? 'scale-[1.02] shadow-lg' : ''}
         `}>
@@ -40,7 +39,6 @@ export default function SearchBar({ value, onChange, onSubmit, placeholder = 'Sc
             </button>
           )}
         </div>
-      </form>
     </div>
   )
 }
