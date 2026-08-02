@@ -1,6 +1,5 @@
 export const fetchRssFeed = async (url: string): Promise<{ title: string, content: string, link: string }[]> => {
   try {
-    // Use internal proxy to bypass CORS
     const proxyUrl = `/api/rss-proxy?url=${encodeURIComponent(url)}`;
     const response = await fetch(proxyUrl);
 
@@ -13,7 +12,6 @@ export const fetchRssFeed = async (url: string): Promise<{ title: string, conten
     const parser = new DOMParser();
     const xmlDoc = parser.parseFromString(xmlString, 'application/xml');
 
-    // Check for XML parse errors
     if (xmlDoc.getElementsByTagName('parsererror').length > 0) {
       console.warn(`RSS-Fetch ungültige XML für ${url}`);
       return [];
@@ -66,25 +64,83 @@ export const searchRssFeeds = async (term: string, feeds: string[]) => {
   );
 };
 
+// München
 export const localMunichFeeds = [
   'https://www.tagesschau.de/xml/rss2/',
   'https://www.tagesschau.de/infoservices/alle-meldungen-100~rss2.xml',
   'https://www.deutschlandfunk.de/nachrichten-100.rss',
-  'https://www.tagesschau.de/xml/rdf.rdf'
+  'https://www.abendzeitung-muenchen.de/rss/',
+  'https://www.merkur.de/feed',
+  'https://www.br24.de/rss/muenchen',
+  'https://www.tag24.com/muenchen/rss/',
+  'https://www.muenchen.de/rss/'
 ];
 
+// Freising, Hallbergmoos, Erding
 export const freisingErdingFeeds = [
-  'https://www.tagesschau.de/xml/rdf.rdf',
-  'https://www.tagesschau.de/xml/rss2/index.html'
+  'https://www.freising.de/rss.xml',
+  'https://www.hallbergmoos.de/rss.xml',
+  'https://www.landkreis-erding.de/rss.xml',
+  'https://www.br24.de/rss/freising',
+  'https://www.br24.de/rss/erding',
+  'https://www.freisinger-ticker.de/feed/'
 ];
 
+// Goslar, Harz, Clausthal-Zellerfeld
 export const goslarHarzFeeds = [
-  'https://www.tagesschau.de/xml/rdf.rdf',
-  'https://www.tagesschau.de/xml/rss2/index.html'
+  'https://www.goslar.de/rss.xml',
+  'https://www.harz-heute.de/feed/',
+  'https://www.hoehenreise.de/feed/',
+  'https://www.clausthal-zeitung.de/feed/',
+  'https://www.br24.de/rss/harz',
+  'https://www.welt.de/regional/harz/',
+  'https://www.tagesschau.de/infoservices/harz-100~rss2.xml'
 ];
 
+// Auto
+export const automotiveFeeds = [
+  'https://www.auto-bild.de/rss',
+  'https://www.motortalk.de/forum/feed',
+  'https://auto-journal.net/feed',
+  'https://www.autohaus.de/rss/'
+];
+
+// Mountainbike / Gravelbike
+export const cyclingFeeds = [
+  'https://www.mtb-news.com/rss',
+  'https://www.gravel-ride.com/feed',
+  'https://www.bikeradar.com/feed/rss/news',
+  'https://www.road.cc/feed/rss'
+];
+
+// Harz
+export const harzFeeds = [
+  'https://www.harz-heute.de/feed/',
+  'https://www.hoehenreise.de/feed/',
+  'https://www.ale-welt.de/feed/'
+];
+
+// Clausthal-Zellerfeld
+export const clausthalFeeds = [
+  'https://www.clausthal-zeitung.de/feed/',
+  'https://www.altenstadt-zeitung.de/feed/'
+];
+
+// KI
+export const kiFeeds = [
+  'https://www.heise.de/ai/feed/',
+  'https://www.ia-hub.org/feed/',
+  'https://www.t3n.de/news/ki/feed/'
+];
+
+// Alle deutschen Feeds kombiniert
 export const germanFeeds = [
   ...localMunichFeeds,
   ...freisingErdingFeeds,
-  ...goslarHarzFeeds
+  ...goslarHarzFeeds,
+  ...automotiveFeeds,
+  ...cyclingFeeds,
+  ...harzFeeds,
+  ...clausthalFeeds,
+  ...kiFeeds
 ];
