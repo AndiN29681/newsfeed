@@ -23,12 +23,6 @@ type NewsItem = BareArticle & {
   originalUrl: string
 }
 
-const versionInfo = {
-  version: "1.0.0",
-  gitHash: 'dev',
-  buildTime: new Date().toISOString().split('T')[0],
-};
-
 export default function SearchPage() {
   const [query, setQuery] = useState<string>('')
   const [results, setResults] = useState<NewsItem[]>([])
@@ -160,7 +154,7 @@ export default function SearchPage() {
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto py-8 sm:px-6 lg:px-8">
+      <main className="max-w-7xl mx-auto py-8 px-4">
         <form onSubmit={handleSearch} className="mb-8">
           <SearchBar
             value={query}
