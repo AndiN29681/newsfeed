@@ -1,14 +1,16 @@
 import { Search, X } from 'lucide-react'
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
+import { germanFeeds } from '@/lib/rss'
 
 interface SearchBarProps {
   value: string
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void
   onSubmit: (e: React.FormEvent) => void
+  onSearchStart?: () => void
   placeholder?: string
 }
 
-export default function SearchBar({ value, onChange, onSubmit, placeholder = 'Schlagwort eingeben...' }: SearchBarProps) {
+export default function SearchBar({ value, onChange, onSubmit, onSearchStart, placeholder = 'Schlagwort eingeben...' }: SearchBarProps) {
   const [isFocused, setIsFocused] = useState(false)
 
   return (
@@ -39,6 +41,10 @@ export default function SearchBar({ value, onChange, onSubmit, placeholder = 'Sc
             </button>
           )}
         </div>
+      {/* Statusleiste */}
+      <div className="mt-2 text-sm text-gray-500 dark:text-gray-400">
+        {germanFeeds.length} lokale RSS-Feeds bereit
+      </div>
     </div>
   )
 }

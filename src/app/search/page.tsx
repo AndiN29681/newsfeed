@@ -31,6 +31,7 @@ export default function SearchPage() {
   const [summary, setSummary] = useState<string>('')
   const [hasMore, setHasMore] = useState<boolean>(false)
   const [rssProgress, setRssProgress] = useState<{ loaded: number; total: number }>({ loaded: 0, total: germanFeeds.length })
+  const [isRssSearching, setIsRssSearching] = useState<boolean>(false)
 
   const searchNews = async (searchTerm: string, page = 1) => {
     if (!searchTerm.trim()) return
@@ -45,8 +46,18 @@ export default function SearchPage() {
         fetchNewsAPI(searchTerm)
       ])
 
-      // Lade RSS-Feeds
-      const rssResults = (await Promise.all(germanFeeds.map(feed => fetchRssFeed(feed)))).flat();
+      // Lade RSS-Feeds mit Progress-Tracking
+      setIsRssSearching(true)
+      setRssProgress({ loaded: 0, total: germanFeeds.length })
+      const rssResultsArrays = await Promise.all(
+        germanFeeds.map(async (feed) => {
+          const results = await fetchRssFeed(feed)
+          setRssProgress((prev) => ({ loaded: prev.loaded + 1, total: prev.total }))
+          return results
+        })
+      )
+      const rssResults = rssResultsArrays.flat()
+      setIsRssSearching(false)
 
       // Formatiere RSS-Ergebnisse zu NewsItem
       const formattedRssResults = rssResults.map(item => ({
