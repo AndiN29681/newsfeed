@@ -67,25 +67,19 @@ export const searchRssFeeds = async (term: string, feeds: string[]) => {
 };
 
 export const localMunichFeeds = [
-  'https://www.tag24.com/rss',
-  'https://www.nachrichtenleicht.de/feed/',
-  'https://www.tagesschau.de/rss',
-  'https://rss.cnn.com/rss/edition_europe.rss',
-  'https://feeds.bbci.co.uk/news/world-europe/rss.xml'
+  'https://www.tagesschau.de/xml/rss2/',
+  'http://www.tagesschau.de/xml/rss2/index.html',
+  'https://www.tagesschau.de/xml/rdf.rdf'
 ];
 
 export const freisingErdingFeeds = [
-  'https://www.tagesschau.de/rss',
-  'https://www.nachrichtenleicht.de/feed/',
-  'https://rss.cnn.com/rss/edition_europe.rss',
-  'https://feeds.bbci.co.uk/news/world-europe/rss.xml'
+  'https://www.tagesschau.de/xml/rdf.rdf',
+  'https://www.tagesschau.de/xml/rss2/index.html'
 ];
 
 export const goslarHarzFeeds = [
-  'https://www.tagesschau.de/rss',
-  'https://www.tag24.com/rss',
-  'https://rss.cnn.com/rss/edition_europe.rss',
-  'https://feeds.bbci.co.uk/news/world-europe/rss.xml'
+  'https://www.tagesschau.de/xml/rdf.rdf',
+  'https://www.tagesschau.de/xml/rss2/index.html'
 ];
 
 export const germanFeeds = [

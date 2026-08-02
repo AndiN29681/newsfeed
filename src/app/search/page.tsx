@@ -25,7 +25,7 @@ type NewsItem = BareArticle & {
 
 const versionInfo = {
   version: "1.0.0",
-  gitHash: typeof window !== 'undefined' ? window.location.hash.slice(1, 8) : 'dev',
+  gitHash: 'dev',
   buildTime: new Date().toISOString().split('T')[0],
 };
 
