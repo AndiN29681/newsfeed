@@ -147,7 +147,7 @@ export default function SearchPage() {
               </div>
               <div className="border-l border-gray-300 dark:border-gray-600 px-3"></div>
               <div className="text-xs">
-                Version {versionInfo.version} • {versionInfo.gitHash}
+                Version 1.0.0 • dev
               </div>
             </div>
           </div>
